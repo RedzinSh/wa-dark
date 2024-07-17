@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="https://telegra.ph/file/1d523f0d3fc0ca1681b68.jpg" />
+    <title>𝑊𝐴 𝐷𝐴𝑅𝐾  𝑏𝑦 𝑝𝑒𝑑𝑟𝑜𝑧𝑧</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 94vh;
+            background: url(https://telegra.ph/file/03dd614f526f1a7fee794.jpg) no-repeat center center fixed;
+            background-size: cover;
+            color: #000;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 900px;
+            height: 100%;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-color: #2A2F32;
+        }
+
+        .chat-header {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background-color: #121b22;
+            border-bottom: 1px solid #ccc;
+        }
+
+        .chat-header img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .chat-header .name-status {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header .name-status .name {
+            font-weight: bold;
+            color: white;
+        }
+
+        .chat-header .name-status .status {
+            color: green;
+        }
+
+.chat-box {
+    flex: 1;
+    overflow-y: auto;
+    background-image: url("https://telegra.ph/file/f17324d0652a966d29fc5.jpg");
+    background-size: cover; /* Faz a imagem cobrir toda a área */
+    background-position: center; /* Centraliza a imagem */
+    background-repeat: no-repeat; /* Evita a repetição da imagem */
+    padding: 10px;
+}
+
+
+        .message {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .message img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .user-message img {
+            margin-right: 0;
+            margin-left: 10px;
+        }
+
+        .message p {
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #00FF7F;
+            border-radius: 10px;
+            word-wrap: break-word;
+            display: inline-block;
+        }
+
+        .bot-message p {
+            background-color: #ffffff;
+        }
+
+        #ask-form {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+            padding: 10px;
+            box-sizing: border-box;
+            background-color: #2A2F32;
+        }
+
+        #messageInput {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 50px;
+            width: calc(100% - 90px);
+            margin-right: 10px;
+        }
+
+        #sendButton {
+            padding: 10px 20px;
+            background-color: pink;
+            color: black;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+        #sendButton:hover {
+            background-color: hotpink;
+        }
+
+        #audioButton {
+            padding: 10px 20px;
+            background-color: lightblue;
+            color: black;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #audioButton:hover {
+            background-color: deepskyblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <img id="userProfilePic" src="" alt="Imagem do Usuário">
+            <div class="name-status">
+                <span id="userName" class="name">Nome do usuário</span>
+                <span class="status">Em andamento....</span>
+            </div>
+        </div>
+        
+        <div class="chat-box" id="messages">
+            <!-- As mensagens serão carregadas aqui -->
+        </div>
+        
+        <div id="ask-form">
+            <input type="text" id="messageInput" placeholder="𝑊𝐴 𝐷𝐴𝑅𝐾  𝑏𝑦 𝑝𝑒𝑑𝑟𝑜𝑧𝑧">
+            <button id="sendButton" onclick="sendMessage()">Enviar</button>
+<!----       <button id="audioButton" onclick="sendAudioMessage()">Áudio</button>--->
+        </div>
+    </div>
+
+    <audio id="notification-sound" src="https://f.top4top.io/m_31176uvel0.mp3" preload="auto"></audio>
+
+    <script>
+        const userCode = localStorage.getItem('userCode');
+        const chatUserCode = new URLSearchParams(window.location.search).get('code');
+        let users = [];
+        let mediaRecorder;
+        let audioChunks = [];
+
+        function loadUserInfo() {
+            fetch(`/api/getUserByCode/${chatUserCode}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('userProfilePic').src = data.foto;
+                        document.getElementById('userName').innerText = data.username;
+                    }
+                })
+                .catch(error => console.error('Erro ao carregar informações do usuário:', error));
+        }
+
+        function loadMessages() {
+            fetch(`/api/messages/${userCode}/${chatUserCode}`)
+                .then(response => response.json())
+                .then(messages => {
+                    const messagesDiv = document.getElementById('messages');
+                    messagesDiv.innerHTML = '';
+                    messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `message ${msg.from === userCode ? 'user-message' : 'bot-message'}`;
+
+                        let userPhoto = msg.fromFoto || 'https://default-photo-url.jpg';
+                        let messageContent;
+                        if (msg.type === 'text') {
+                            messageContent = `<p>${msg.content}</p>`;
+                        } else if (msg.type === 'audio') {
+                            messageContent = `<audio controls src="${msg.content}"></audio>`;
+                        }
+                        messageDiv.innerHTML = `
+                            <img src="${userPhoto}" alt="Imagem do Usuário">
+                            ${messageContent}
+                        `;
+                        messagesDiv.appendChild(messageDiv);
+                        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                    });
+                })
+                .catch(error => console.error('Erro ao carregar mensagens:', error));
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+
+            if (content === '') return;
+
+            fetch('/api/sendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: userCode,
+                    to: chatUserCode,
+                    content,
+                    type: 'text'
+                })
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Erro ao enviar mensagem');
+                messageInput.value = '';
+                loadMessages();
+            })
+            .catch(error => console.error('Erro ao enviar mensagem:', error));
+        }
+
+        function sendAudioMessage() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.ondataavailable = event => {
+                            audioChunks.push(event.data);
+                            if (mediaRecorder.state === 'inactive') {
+                                const audioBlob = new Blob(audioChunks, { type: 'audio/mpeg-3' });
+                                const audioUrl = URL.createObjectURL(audioBlob);
+                                const audio = new Audio(audioUrl);
+                                audio.play();
+
+                                // Enviar áudio ao servidor
+                                const formData = new FormData();
+                                formData.append('from', userCode);
+                                formData.append('to', chatUserCode);
+                                formData.append('audio', audioBlob);
+
+                                fetch('/api/sendAudioMessage', {
+                                    method: 'POST',
+                                    body: formData
+                                })
+                                .then(response => {
+                                    if (!response.ok) throw new Error('Erro ao enviar mensagem de áudio');
+                                    loadMessages();
+                                })
+                                .catch(error => console.error('Erro ao enviar mensagem de áudio:', error));
+                            }
+                        };
+
+                        mediaRecorder.start();
+
+                        setTimeout(() => {
+                            mediaRecorder.stop();
+                        }, 5000); // Gravar por 5 segundos
+                    })
+                    .catch(error => console.error('Erro ao acessar o microfone:', error));
+            } else {
+                console.error('Navegador não suporta gravação de áudio.');
+            }
+        }
+
+        window.onload = () => {
+            loadUserInfo();
+            loadMessages();
+            setInterval(loadMessages, 5000);
+        };
+    </script>
+</body>
+</html>

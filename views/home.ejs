@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝑊𝐴 𝐷𝐴𝑅𝐾</title>
+        <link rel="shortcut icon" type="image/png" href="https://telegra.ph/file/1d523f0d3fc0ca1681b68.jpg" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <style>
+        body {
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121b22;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 1px solid #3b4a54;
+            border-radius: 8px;
+            overflow: hidden;
+            padding-bottom: 60px; /* Espaço para a footer */
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            height: 50px;
+            padding: 10px 20px;
+            background-color: #1f2c34;
+            border-bottom: 1px solid #3b4a54;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .settings {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .header-profile-pic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #25D366;
+        }
+
+        .chat-list {
+            padding: 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 15px;
+            border-bottom: 1px solid #3b4a54;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-item:hover {
+            background-color: #2a3942;
+        }
+
+        .chat-item img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            margin-right: 15px;
+        }
+
+        .chat-item-info {
+            flex: 1;
+        }
+
+        .chat-item-info .name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .chat-item-info .message {
+            color: #a6a6a6;
+            font-size: 14px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: #1f2c34;
+            border-top: 1px solid #3b4a54;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-width: 600px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #a6a6a6;
+        }
+
+        .footer-icon.active {
+            color: #00af9c;
+        }
+
+        .add-chat {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background-color: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .add-chat-icon {
+            font-size: 28px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title mdi mdi-whatsapp">𝑊𝐴 𝐷𝐴𝑅𝐾</div>
+        </div>
+        <div class="chat-list" id="chatList">
+            <!-- As conversas serão inseridas aqui dinamicamente -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <span class="footer-icon active mdi mdi-message-text" onclick="goToHome()"></span>
+        <span class="footer-icon mdi mdi-phone-outline" onclick="goToCall()"></span>
+        <span class="footer-icon mdi mdi-circle-outline" onclick="goToStatus()"></span>
+        <span class="footer-icon mdi mdi-cog" onclick="goToSettings()"></span>
+    </div>
+
+    <div class="add-chat" onclick="showAddChat()">
+        <div class="add-chat-icon material-icons">add</div>
+    </div>
+
+    <script>
+        const userCode = localStorage.getItem('userCode') || 'defaultCode';
+        let chats = JSON.parse(localStorage.getItem(`chats_${userCode}`)) || [];
+
+        function saveChats() {
+            localStorage.setItem(`chats_${userCode}`, JSON.stringify(chats));
+        }
+
+        async function loadChats() {
+            try {
+                const response = await fetch('/api/getAllUsers');
+                const users = await response.json();
+
+                if (users.success) {
+                    users.data.forEach(user => {
+                        const chat = chats.find(chat => chat.code === user.userCode);
+                        if (chat) {
+                            chat.img = user.foto;
+                        }
+                    });
+                    saveChats();
+                }
+            } catch (error) {
+                console.error("Erro ao carregar os usuários:", error);
+            }
+
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+
+            chats.forEach(chat => {
+                const chatItem = document.createElement('div');
+                chatItem.className = 'chat-item';
+                chatItem.onclick = () => goToChat(chat.code);
+
+                chatItem.innerHTML = `
+                    <img id="img_${chat.code}" src="${chat.img}" alt="${chat.name}">
+                    <div class="chat-item-info">
+                        <div class="name">${chat.name}</div>
+                        <div class="message">${chat.message}</div>
+                    </div>
+                    <div class="time" style="color: SpringGreen;">Em andamento...</div>
+                `;
+
+                chatList.appendChild(chatItem);
+            });
+        }
+
+        function goToSettings() {
+            window.location.href = "/perfil";
+        }
+
+        function goToChat(chatCode) {
+            window.location.href = `/chat?code=${chatCode}`;
+        }
+        
+        function goToStatus() {
+            window.location.href = `/status`;
+        }
+        
+        function goToHome() {
+            window.location.href = "/home";
+        }
+        
+        function goToCall() {
+            window.location.href = "/call";
+        }
+
+        function showAddChat() {
+            const newChatCode = prompt("Digite o código do usuário para adicionar:");
+            if (newChatCode) {
+                addChat(newChatCode);
+            }
+        }
+
+        async function addChat(code) {
+            const chatName = prompt("Digite o nome para este contato:");
+            if (!chatName) {
+                alert("Nome do contato é obrigatório.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/getUserByCode/${code}`);
+                const userData = await response.json();
+
+                if (!userData.success) {
+                    alert("Usuário não encontrado.");
+                    return;
+                }
+
+                const { foto } = userData;
+
+                const existingChat = chats.find(chat => chat.code === code);
+                if (!existingChat) {
+                    chats.push({
+                        code: code,
+                        name: chatName,
+                        img: foto,
+                        message: "Olá 👋! Eu estou no 𝑊𝐴 𝐷𝐴𝑅𝐾😌"
+                    });
+                    saveChats();
+                    loadChats();
+                } else {
+                    alert("Você já adicionou este usuário.");
+                }
+            } catch (error) {
+                console.error("Erro ao adicionar chat:", error);
+                alert("Ocorreu um erro ao adicionar o chat.");
+            }
+        }
+
+        function updateContactPhoto(code, newPhoto) {
+            const chat = chats.find(chat => chat.code === code);
+            if (chat) {
+                chat.img = newPhoto;
+                saveChats();
+                document.getElementById(`img_${code}`).src = newPhoto;
+            }
+        }
+
+        loadChats();
+
+        // Atualiza a foto do usuário quando a página é carregada
+        window.addEventListener('load', () => {
+            fetch('/api/getAllUsers')
+                .then(response => response.json())
+                .then(users => {
+                    if (users.success) {
+                        users.data.forEach(user => {
+                            updateContactPhoto(user.userCode, user.foto);
+                        });
+                    }
+                })
+                .catch(error => console.error('Erro ao carregar fotos:', error));
+        });
+    </script>
+
+</body>
+</html>

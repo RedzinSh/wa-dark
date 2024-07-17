@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" type="image/png" href="https://telegra.ph/file/1d523f0d3fc0ca1681b68.jpg" />
+    <title>𝑊𝐴 𝐷𝐴𝑅𝐾</title>
+    <style>
+        body {
+            color: white;
+            font-family: 'Arial', sans-serif;
+            background-color: #121b22;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background-color: #1f2c34;
+            padding: 40px 20px;
+            border-radius: 12px;
+            border: 1px solid #3b4a54;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .container h2 {
+            margin-bottom: 20px;
+            color: #25d366;
+        }
+
+        .form-container {
+            display: none;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        input {
+            margin: 10px 0;
+            padding: 15px;
+            width: calc(100% - 20px);
+            border: 1px solid #3b4a54;
+            border-radius: 8px;
+            background-color: #121b22;
+            color: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 15px;
+            width: 70%;
+            background-color: #25d366;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            color: white;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #23b159;
+        }
+
+        .toggle-link {
+            color: #25d366;
+            cursor: pointer;
+            display: block;
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .toggle-link:hover {
+            text-decoration: underline;
+        }
+
+        .separator {
+            margin: 20px 0;
+            border-bottom: 1px solid #3b4a54;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+    <h3 style="color: gray;">𝑊𝐴 𝐷𝐴𝑅𝐾 𝑏𝑦 𝑝𝑒𝑑𝑟𝑜𝑧𝑧</h3>
+        <div id="loginForm" class="form-container active">
+            <h2>Login</h2>
+            <input type="text" id="username" placeholder="Usuário" required>
+            <input type="password" id="password" placeholder="Senha" required>
+            <button onclick="login()">Entrar</button>
+            <span class="toggle-link" onclick="showRegister()">Fazer registro</span>
+        </div>
+        <div id="registerForm" class="form-container">
+            <h2>Registro</h2>
+            <input type="text" id="newUsername" placeholder="Novo Usuário" required>
+            <input type="password" id="newPassword" placeholder="Nova Senha" required>
+            <button onclick="register()">Registrar</button>
+            <span class="toggle-link" onclick="showLogin()">Voltar ao login</span>
+        </div>
+    </div>
+
+    <script>
+        function showRegister() {
+            document.getElementById('loginForm').classList.remove('active');
+            document.getElementById('registerForm').classList.add('active');
+        }
+
+        function showLogin() {
+            document.getElementById('registerForm').classList.remove('active');
+            document.getElementById('loginForm').classList.add('active');
+        }
+
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            const response = await fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username, password }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                localStorage.setItem('userCode', data.userCode); // Armazena o código do usuário
+                window.location.href = '/home'; // Redireciona para a home
+            } else {
+                alert(data.message); // Exibe mensagem de erro
+            }
+        }
+
+        async function register() {
+            const newUsername = document.getElementById('newUsername').value;
+            const newPassword = document.getElementById('newPassword').value;
+
+            const response = await fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ username: newUsername, password: newPassword }),
+            });
+
+            const data = await response.json();
+            if (data.success) {
+                alert('Usuário registrado com sucesso!');
+                showLogin();
+            } else {
+                alert(data.message); // Exibe mensagem de erro
+            }
+        }
+    </script>
+</body>
+</html>

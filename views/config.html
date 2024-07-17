@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>𝑊𝐴 𝐷𝐴𝑅𝐾  𝑏𝑦 𝑝𝑒𝑑𝑟𝑜𝑧𝑧</title>
+    <link rel="shortcut icon" type="image/png" href="https://telegra.ph/file/1d523f0d3fc0ca1681b68.jpg" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <style>
+        body {
+            background-color: #121b22;
+            color: white;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+        }
+
+        .header i {
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .profile-pic {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            margin-top: 10px;
+        }
+
+        .profile-pic img {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 2px solid #25D366;
+        }
+
+        .profile-pic label {
+            position: absolute;
+            bottom: 0;
+            right: 25%;
+            background-color: #25D366;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .profile-pic input {
+            display: none;
+        }
+
+        .info-section {
+            margin-top: 20px;
+        }
+
+        .info-section .info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #3b4a54;
+            padding: 0px 0;
+        }
+       
+        .info-section .info i {
+            color: gray;
+        }
+
+        .info-section .info input,
+        .info-section .info textarea {
+            width: calc(100% - 50px);
+            background-color: transparent;
+            border: none;
+            color: white;
+            outline: none;
+            padding: 5px 0;
+        }
+
+        .info-section .info textarea {
+            resize: none;
+            height: 50px;
+        }
+
+        button {
+            padding: 10px;
+            width: 50%;
+            background-color: #25d366;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            color: white;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #23b159;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+     <center><h3>PERFIL</h3></center>
+        <div class="header">
+            <i class="fas fa-arrow-left" onclick="history.back()"></i>
+        </div>
+        <div class="profile-pic">
+            <img id="userPhoto" src="https://via.placeholder.com/150" alt="Foto do Usuário">
+        </div>
+        <div class="info-section">
+         <h5 style="color: gray;">Nome:</h5>
+            <div class="info">
+            
+      <i class="mdi mdi-account-outline" style="font-size: 25px;"></i>
+       <input type="text" id="userName" placeholder="Novo Nome">
+                <i class="fas fa-pencil-alt" style="color: #00af9c;"></i>
+            </div>
+            <h5 style="color: gray;">Biografia:</h5>
+            <div class="info">
+     <i class="mdi mdi-information-outline" style="font-size: 25px;"></i>
+                <input type="text" id="userBio" placeholder="Nova bio">
+                <i class="fas fa-pencil-alt" style="color: #00af9c;"></i>
+            </div>
+            <h5 style="color: gray;">Foto</h5>
+            <div class="info">
+       <i class="mdi mdi-camera-outline" style="font-size: 25px;"></i>
+                <input type="text" id="userPhotoInput" placeholder="Nova foto (URL)">
+                <i class="fas fa-pencil-alt" style="color: #00af9c;"></i>
+            </div>
+        <div class="info2">
+      <h5 style="color: gray;">código de convite:</h5>
+       <h3 id="userCode"></h3>
+            </div>
+        </div>
+        <center><button onclick="saveSettings()">Salvar</button></center>
+    </div>
+
+    <script>
+        const userCode = localStorage.getItem('userCode') || 'defaultCode';
+
+        async function loadUserProfile() {
+            try {
+                const response = await fetch(`/api/getUserByCode/${userCode}`);
+                const userData = await response.json();
+
+                if (userData.success) {
+          document.getElementById('userPhoto').src = userData.foto;
+            document.getElementById('userName').value = userData.username;
+            document.getElementById('userCode').innerText = userCode;
+            document.getElementById('userBio').value = userData.bio;
+            document.getElementById('userPhotoInput').value = userData.foto;
+                } else {
+                    alert("Erro ao carregar perfil.");
+                }
+            } catch (error) {
+                console.error("Erro ao carregar perfil:", error);
+                alert("Ocorreu um erro ao carregar o perfil.");
+            }
+        }
+
+        async function saveSettings() {
+            const userName = document.getElementById('userName').value;
+            const userBio = document.getElementById('userBio').value;
+            const userPhoto = document.getElementById('userPhotoInput').value;
+
+            document.getElementById('userPhoto').src = userPhoto;
+
+            try {
+                const response = await fetch(`/api/updateUser`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userCode,
+                        username: userName,
+                        bio: userBio,
+                        foto: userPhoto
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert("Configurações salvas com sucesso!");
+                } else {
+                    alert("Erro ao salvar configurações.");
+                }
+            } catch (error) {
+                console.error("Erro ao salvar configurações:", error);
+                alert("Ocorreu um erro ao salvar as configurações.");
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", loadUserProfile);
+    </script>
+</body>
+</html>

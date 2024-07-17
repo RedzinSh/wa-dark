@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status do WhatsApp</title>
+    <link rel="shortcut icon" type="image/png" href="https://telegra.ph/file/1d523f0d3fc0ca1681b68.jpg" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
+    <style>
+        body {
+            color: white;
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121b22;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 20px;
+            background-color: #1f2c34;
+            border-bottom: 1px solid #3b4a54;
+        }
+
+        .header-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .chat-list {
+            padding: 0;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #3b4a54;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .status-item:hover {
+            background-color: #2a3942;
+        }
+
+        .status-item img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            margin-right: 15px;
+            border: 2px solid #25D366;
+        }
+
+        .status-item-info {
+            flex: 1;
+        }
+
+        .status-item-info .name {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .status-item-info .timestamp {
+            color: #a6a6a6;
+            font-size: 14px;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            background-color: #1f2c34;
+            border-top: 1px solid #3b4a54;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .footer-icon {
+            font-size: 24px;
+            cursor: pointer;
+            color: #a6a6a6;
+        }
+
+        .footer-icon.active {
+            color: #00af9c;
+        }
+
+        .add-status {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background-color: #25d366;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .add-status-icon {
+            font-size: 28px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-title">Status</div>
+        </div>
+        <div class="chat-list" id="chatList">
+            <!-- Statuses serão inseridos aqui dinamicamente -->
+        </div>
+    </div>
+
+    <div class="footer">
+        <span class="footer-icon mdi mdi-message-text" onclick="goToHome()"></span>
+        <span class="footer-icon mdi mdi-phone-outline" onclick="goToCall()"></span>
+        <span class="footer-icon active mdi mdi-circle-outline" onclick="goToStatus()"></span>
+        <span class="footer-icon mdi mdi-cog" onclick="goToSettings()"></span>
+    </div>
+
+    <div class="add-status" onclick="showAddStatus()">
+        <div class="add-status-icon material-icons">add</div>
+    </div>
+
+    <script>
+        const userCode = localStorage.getItem('userCode') || 'defaultCode';
+        let statuses = JSON.parse(localStorage.getItem(`statuses_${userCode}`)) || [];
+
+        // Default status for demonstration
+        if (statuses.length === 0) {
+            statuses.push({
+                code: 'default',
+                name: 'Usuário Padrão',
+                img: 'https://via.placeholder.com/60',
+                timestamp: 'Agora',
+                content: 'Olá! Este é o meu status.'
+            });
+        }
+
+        function saveStatuses() {
+            localStorage.setItem(`statuses_${userCode}`, JSON.stringify(statuses));
+        }
+
+        function loadStatuses() {
+            const chatList = document.getElementById('chatList');
+            chatList.innerHTML = '';
+
+            statuses.forEach(status => {
+                const statusItem = document.createElement('div');
+                statusItem.className = 'status-item';
+                statusItem.onclick = () => goToStatusDetail(status.code);
+
+                statusItem.innerHTML = `
+                    <img id="img_${status.code}" src="${status.img}" alt="${status.name}">
+                    <div class="status-item-info">
+                        <div class="name">${status.name}</div>
+                        <div class="timestamp">${status.timestamp}</div>
+                        <div class="content">${status.content}</div>
+                    </div>
+                `;
+
+                chatList.appendChild(statusItem);
+            });
+        }
+
+        function goToSettings() {
+            window.location.href = "/perfil";
+        }
+
+        function goToStatusDetail(statusCode) {
+            const status = statuses.find(s => s.code === statusCode);
+            if (status) {
+                alert(`Status de ${status.name}: ${status.content}`);
+            }
+        }
+        
+        function goToHome() {
+            window.location.href = "/home";
+        }
+
+function goToCall() {
+            window.location.href = "/call";
+        }
+        function showAddStatus() {
+            const content = prompt("Digite seu status (texto ou URL da imagem):");
+            if (content) {
+                addStatus(content);
+            }
+        }
+
+        function addStatus(content) {
+            const statusName = prompt("Digite seu nome:");
+            if (!statusName) {
+                alert("Nome é obrigatório.");
+                return;
+            }
+
+            const newStatus = {
+                code: `status_${statuses.length + 1}`,
+                name: statusName,
+                img: 'https://via.placeholder.com/60',
+                timestamp: "Agora",
+                content: content
+            };
+
+            statuses.push(newStatus);
+            saveStatuses();
+            loadStatuses();
+        }
+
+        loadStatuses();
+
+        // Atualiza a foto do usuário quando a página é carregada
+        window.addEventListener('load', () => {
+            loadStatuses();
+        });
+    </script>
+</body>
+</html>
